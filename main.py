@@ -1,45 +1,47 @@
+# main.py
 import os
-import requests
-import datetime
-from dotenv import load_dotenv  # 导入 load_dotenv
+import logging
+from dotenv import load_dotenv
+from telegram import Application
+from commands import start_command, my_command, email_command, about_command, goods_command
 
-load_dotenv()  # 加载 .env 文件 (本地测试用)
+load_dotenv()
+
+# 配置日志记录
+logging.basicConfig(
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
+)
+logger = logging.getLogger(__name__)
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
-if not BOT_TOKEN:
-    raise ValueError("BOT_TOKEN environment variable not set.")
+# ... (其他环境变量)
 
-USER_ID = os.environ.get("USER_ID")
-if not USER_ID:
-    raise ValueError("USER_ID environment variable not set.")
+async def error_handler(update, context):
+    """处理 Telegram API 错误"""
+    logger.error(f"Update {update} caused error {context.error}")
 
-FIRST_NAME = os.environ.get("FIRST_NAME")
-if not FIRST_NAME:
-    raise ValueError("FIRST_NAME environment variable not set.")
+async def post_init(application: Application):
+    """机器人启动后执行的操作"""
+    logger.info("Bot started.")
 
-LAST_NAME = os.environ.get("LAST_NAME")
-if not LAST_NAME:
-    raise ValueError("LAST_NAME environment variable not set.")
+async def main():
+    """启动机器人"""
+    application = Application.builder().token(BOT_TOKEN).post_init(post_init).build()
 
-LANG = os.environ.get("LANG")
-if not LANG:
-    raise ValueError("LANG environment variable not set.")
+    # 添加命令处理函数
+    application.add_handler(CommandHandler("start", start_command))
+    application.add_handler(CommandHandler("my", my_command))
+    application.add_handler(CommandHandler("email", email_command))
+    application.add_handler(CommandHandler("about", about_command))
+    application.add_handler(CommandHandler("goods", goods_command))
 
+    # 添加错误处理函数
+    application.add_error_handler(error_handler)
 
-# ... (其他代码不变)
-
-def main():
-    # ... (其他代码不变)
-    while True:
-        update = {
-            "message": {
-                "chat": {"id": USER_ID},
-                "from": {"id": USER_ID, "first_name": FIRST_NAME, "last_name": LAST_NAME},
-                "text": input("Enter message: ")  # 从命令行输入消息
-            }
-        }
-        handle_command(update)
-
+    await application.initialize()
+    await application.start_polling()
+    await application.idle()
 
 if __name__ == "__main__":
-    main()
+    import asyncio
+    asyncio.run(main())
