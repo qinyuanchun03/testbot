@@ -1,55 +1,49 @@
-import telebot
+import os
+import requests
+import datetime
 
-# 替换为您的 Bot Token
-bot_token = "7494471502:AAGhksh25nloeroa8Je-aeU7t9AVRDhDmv4"
+# 从环境变量中获取机器人 token 和用户信息
+BOT_TOKEN = os.environ.get("BOT_TOKEN")
+USER_ID = os.environ.get("USER_ID")
+FIRST_NAME = os.environ.get("FIRST_NAME")
+LAST_NAME = os.environ.get("LAST_NAME")
+LANG = os.environ.get("LANG")
 
-bot = telebot.TeleBot(bot_token)
+def send_message(message):
+  """发送消息到 Telegram"""
+  url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+  data = {
+      "chat_id": USER_ID,
+      "text": message
+  }
+  response = requests.post(url, json=data)
+  return response.json()
 
-# 用户信息存储 (这里使用字典，实际应用中应使用数据库)
-user_data = {}
+def schedule_message(message, time):
+  """
+  调度消息发送
+  Args:
+    message: 要发送的消息
+    time: 消息发送时间，格式为 YYYY-MM-DD HH:MM:SS
+  """
+  now = datetime.datetime.now()
+  scheduled_time = datetime.datetime.strptime(time, "%Y-%m-%d %H:%M:%S")
 
-@bot.message_handler(commands=['start'])
-def start(message):
-    user_id = message.from_user.id
-    if user_id in user_data:
-        bot.reply_to(message, f"欢迎回来，{user_data[user_id]['name']}！")
-    else:
-        bot.reply_to(message, "欢迎使用本机器人！\n您尚未记录信息，请使用 /my 账号 密码 命令来记录信息。")
+  if scheduled_time <= now:
+    send_message(message)
+    return
 
-@bot.message_handler(commands=['my'])
-def my(message):
-    user_id = message.from_user.id
-    try:
-        _, account, password = message.text.split()
-        user_data[user_id] = {'name': account, 'password': password}  # 存储用户信息
-        bot.reply_to(message, "信息已成功记录！")
-    except ValueError:
-        bot.reply_to(message, "请正确使用 /my 账号 密码 命令。")
+  delay = (scheduled_time - now).total_seconds()
+  print(f"Message scheduled in {delay} seconds...")
 
-@bot.message_handler(commands=['email'])
-def email(message):
-    user_id = message.from_user.id
-    try:
-        _, email = message.text.split()
-        # 这里可以添加邮箱验证逻辑
-        if user_id not in user_data:
-            user_data[user_id] = {}
-        user_data[user_id]['email'] = email
-        bot.reply_to(message, f"已成功绑定您的邮箱：{email}")
-    except ValueError:
-        bot.reply_to(message, "请正确使用 /email 邮箱地址 命令。")
+  # 在 GitHub Actions 中，无法使用 time.sleep() 进行长时间等待
+  # 因此，我们需要将任务交给 GitHub Actions 的定时任务来执行
 
-@bot.message_handler(commands=['about'])
-def about(message):
-    bot.reply_to(message, "作者：[作者姓名]\n联系方式：[联系方式]")
+def main():
+  message = "Hello, this is a scheduled message!"
+  time = "2023-12-31 23:59:59"  # 设置消息发送时间
 
-@bot.message_handler(commands=['goods'])
-def goods(message):
-    bot.reply_to(message, "以下是作者为您推荐的信息：\n[推荐信息内容]")
+  schedule_message(message, time)
 
-# 处理其他消息
-@bot.message_handler(func=lambda message: True)
-def echo(message):
-    bot.reply_to(message, message.text)
-
-bot.polling()
+if __name__ == "__main__":
+  main()
