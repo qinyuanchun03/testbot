@@ -26,4 +26,4 @@ jobs:
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
         run: |
-          python your_bot_script.py # 替换为您的脚本文件名
+          python main.py # 替换为您的脚本文件名
