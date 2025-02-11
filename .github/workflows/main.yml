@@ -1,3 +1,4 @@
+# main.yml
 name: Telegram Bot
 
 on:
@@ -18,7 +19,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install requests python-telegram-bot python-dotenv  # 添加 python-dotenv
+          pip install requests python-telegram-bot python-dotenv
       - name: Run bot
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
@@ -26,4 +27,4 @@ jobs:
           FIRST_NAME: ${{ secrets.FIRST_NAME }}
           LAST_NAME: ${{ secrets.LAST_NAME }}
           LANG: ${{ secrets.LANG }}
-        run: python main.py
+        run: nohup python main.py &  # 使用 nohup 在后台运行
