@@ -1,9 +1,8 @@
-name: Telegram Bot
+name: Email Test
 
 on:
-  workflow_dispatch: # 允许手动触发工作流
   schedule:
-    - cron: '0 0 * * *' # 每天 UTC+0 00:00 运行
+    - cron: '*/15 * * * *'  # 每 15 分钟运行一次
 
 jobs:
   build:
@@ -22,8 +21,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run Telegram Bot
+      - name: Set environment variables
         env:
-          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
+          SENDER_PASSWORD: ${{ secrets.SENDER_PASSWORD }}
+          RECEIVER_EMAIL: ${{ secrets.RECEIVER_EMAIL }}
+
+      - name: Run Email Test
         run: |
-          python main.py # 替换为您的脚本文件名
+          python email-test.py
