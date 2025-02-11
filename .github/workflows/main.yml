@@ -1,9 +1,9 @@
-name: Email Test
+name: Telegram Bot
 
 on:
-  workflow_dispatch:  # 允许手动触发工作流
+  workflow_dispatch:  # 手动触发 workflow
   schedule:
-    - cron: '*/15 * * * *'  # 每 15 分钟运行一次
+    - cron: '0 0 * * *'  # 每天 00:00 (UTC) 运行一次
 
 jobs:
   build:
@@ -11,23 +11,19 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-
-      - name: Set up Python
+      - name: Set up Python 3.x
         uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
-
+          python-version: 3.x
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Set environment variables
+          pip install requests python-telegram-bot
+      - name: Run bot
         env:
-          SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
-          SENDER_PASSWORD: ${{ secrets.SENDER_PASSWORD }}
-          RECEIVER_EMAIL: ${{ secrets.RECEIVER_EMAIL }}
-
-      - name: Run Email Test
-        run: |
-          python email-test.py
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          USER_ID: ${{ secrets.USER_ID }}
+          FIRST_NAME: ${{ secrets.FIRST_NAME }}
+          LAST_NAME: ${{ secrets.LAST_NAME }}
+          LANG: ${{ secrets.LANG }}
+        run: python main.py
