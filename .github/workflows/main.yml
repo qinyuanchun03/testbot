@@ -26,4 +26,6 @@ jobs:
           FIRST_NAME: ${{ secrets.FIRST_NAME }}
           LAST_NAME: ${{ secrets.LAST_NAME }}
           LANG: ${{ secrets.LANG }}
-        run: nohup python main.py &  # 使用 nohup 在后台运行
+        run: |
+          nohup python main.py &  # 使用 nohup 在后台运行
+          echo "Bot started in background."
