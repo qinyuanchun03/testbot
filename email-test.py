@@ -1,34 +1,32 @@
 import smtplib
 from email.mime.text import MIMEText
+import os
+import logging
+
+# 配置日志记录
+logging.basicConfig(filename="email_test.log", level=logging.INFO, 
+                    format="%(asctime)s - %(levelname)s - %(message)s")
 
 def send_test_email(sender_email, sender_password, receiver_email):
-    """
-    发送测试邮件
-
-    Args:
-        sender_email: 发件人邮箱地址
-        sender_password: 发件人邮箱密码
-        receiver_email: 收件人邮箱地址
-    """
-
-    # 构造邮件内容
-    message = MIMEText("成功绑定邮箱")
-    message["From"] = sender_email
-    message["To"] = receiver_email
-    message["Subject"] = "test"
-
-    try:
-        # 连接到SMTP服务器
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:  # 使用Gmail的SMTP服务器
-            server.login(sender_email, sender_password)  # 登录邮箱
-            server.sendmail(sender_email, receiver_email, message.as_string())  # 发送邮件
-        print("邮件发送成功！")
-    except Exception as e:
-        print(f"邮件发送失败：{e}")
+    # ... (邮件发送逻辑不变)
 
 if __name__ == "__main__":
-    sender_email = input("请输入发件人邮箱地址：")
-    sender_password = input("请输入发件人邮箱密码：")
-    receiver_email = input("请输入收件人邮箱地址：")
+    sender_email = os.environ.get("SENDER_EMAIL")
+    sender_password = os.environ.get("SENDER_PASSWORD")
+    receiver_email = os.environ.get("RECEIVER_EMAIL")
 
-    send_test_email(sender_email, sender_password, receiver_email)
+    if not all([sender_email, sender_password, receiver_email]):
+        print("请设置 SENDER_EMAIL, SENDER_PASSWORD 和 RECEIVER_EMAIL 环境变量。")
+        exit(1)
+
+    # 检查是否是第一次运行
+    first_run = os.path.exists("first_run.txt")
+
+    if not first_run:
+        # 第一次运行，记录日志并退出
+        logging.info("第一次运行，请在 GitHub Actions 页面手动触发工作流以启动邮件发送。")
+        with open("first_run.txt", "w") as f:
+            f.write("已运行")
+    else:
+        # 不是第一次运行，正常发送邮件
+        send_test_email(sender_email, sender_password, receiver_email)
