@@ -1,7 +1,10 @@
-name: Deploy Telegram Bot (Manual Trigger)
+name: Deploy Telegram Bot (Docker Compose)
 
 on:
-  workflow_dispatch:  # 手动触发工作流
+  push:
+    branches:
+      - main  # 当推送到 main 分支时触发
+  workflow_dispatch:  # 允许手动触发
 
 jobs:
   deploy:
@@ -11,24 +14,38 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Set up Docker Compose
+        uses: docker/setup-docker-compose@v3
         with:
-          python-version: '3.9'  # 或者你使用的 Python 版本
+          version: 'v2.23.0'
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+      - name: Login to Docker Hub (Optional)
+        if: ${{ secrets.DOCKERHUB_USERNAME && secrets.DOCKERHUB_TOKEN }}
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and Push Docker image (Optional)
+        if: ${{ secrets.DOCKERHUB_USERNAME && secrets.DOCKERHUB_TOKEN }}
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/telegram-bot:${{ github.sha }}
 
       - name: Set environment variables
         run: |
           echo "BOT_TOKEN=${{ secrets.BOT_TOKEN }}" >> $GITHUB_ENV
 
-      - name: Run Telegram Bot in Background
-        run: |
-          nohup python main.py > bot.log 2>&1 &
-          echo "Telegram bot started in background. Check bot.log for output."
-
-        env:
-          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+      - name: Deploy to Server (SSH)
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /path/to/your/bot/directory  # 替换为你的机器人目录
+            docker-compose down  # 停止之前的容器
+            docker-compose pull  # 拉取最新的镜像 (如果使用了 Docker Hub)
+            docker-compose up -d  # 启动容器
