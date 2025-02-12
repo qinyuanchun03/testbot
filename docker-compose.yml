@@ -1,0 +1,9 @@
+version: "3.9"
+services:
+  telegram-bot:
+    build: .
+    restart: always
+    environment:
+      BOT_TOKEN: ${BOT_TOKEN}
+    volumes:
+      - ./bot.log:/app/bot.log  # 将容器内的日志文件挂载到宿主机
