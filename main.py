@@ -2,7 +2,7 @@ import logging
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
-import config
+import config  # 导入 config.py
 from handlers import start, submenu
 
 logging.basicConfig(
@@ -21,7 +21,7 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 if __name__ == '__main__':
-    application = ApplicationBuilder().token(config.BOT_TOKEN).build()
+    application = ApplicationBuilder().token(config.BOT_TOKEN).build()  # 使用 config.BOT_TOKEN
 
     # Register handlers
     application.add_handler(CommandHandler("start", start.start))
