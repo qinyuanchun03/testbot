@@ -1,1 +1,1 @@
-BOT_TOKEN = "YOUR_TELEGRAM_BOT_TOKEN"  # 从 BotFather 获取
+BOT_TOKEN = "8147688154:AAE2tPr7akdT2FQHnC7bMngvic14d-7Ywpo"  # 替换为你自己的 Bot Token
