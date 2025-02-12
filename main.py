@@ -1,14 +1,40 @@
 import logging
+import telegram
 from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, PicklePersistence
 
 import config  # 导入 config.py
-from handlers import start, submenu
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Sends a welcome message and stores the chat ID."""
+    chat_id = update.effective_chat.id
+    context.user_data['chat_id'] = chat_id  # Store chat ID in user_data
+    await context.bot.send_message(
+        chat_id=chat_id,
+        text="欢迎使用机器人！"
+    )
+
+async def send_data(context: ContextTypes.DEFAULT_TYPE):
+    """Sends data to all users who have started the bot."""
+    data = "这是一条广播消息！"  # 替换为你要发送的数据
+
+    # Iterate over all user data and send the message
+    for user_id, user_data in context.application.user_data.items():
+        if 'chat_id' in user_data:
+            chat_id = user_data['chat_id']
+            try:
+                await context.bot.send_message(
+                    chat_id=chat_id,
+                    text=data
+                )
+                logging.info(f"Data sent to user ID: {user_id}, chat ID: {chat_id}")
+            except telegram.error.TelegramError as e:
+                logging.error(f"Failed to send data to user ID: {user_id}, chat ID: {chat_id}: {e}")
 
 async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Log the error and send a telegram message to notify the developer."""
@@ -21,12 +47,16 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 if __name__ == '__main__':
-    application = ApplicationBuilder().token(config.BOT_TOKEN).build()  # 使用 config.BOT_TOKEN
+    # Enable persistence to store user data
+    persistence = PicklePersistence(filepath="bot_data.pkl")
+
+    application = ApplicationBuilder().token(config.BOT_TOKEN).persistence(persistence).build()  # 使用 config.BOT_TOKEN
 
     # Register handlers
-    application.add_handler(CommandHandler("start", start.start))
-    application.add_handler(CommandHandler("option1", submenu.option1))  # 示例子菜单命令
-    application.add_handler(CommandHandler("option2", submenu.option2))  # 示例子菜单命令
+    application.add_handler(CommandHandler("start", start))
+
+    # Run send_data every 60 seconds
+    application.job_queue.run_repeating(send_data, interval=60, first=10)
 
     # Add error handler
     application.add_error_handler(error_handler)
