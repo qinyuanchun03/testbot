@@ -4,7 +4,7 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, PicklePersistence
 
 # 定义 Bot Token 和 API 地址
-BOT_TOKEN = "YOUR_BOT_TOKEN"  # 替换为你的 Bot Token
+BOT_TOKEN = "8147688154:AAE2tPr7akdT2FQHnC7bMngvic14d-7Ywpo"  # 替换为你的 Bot Token
 API_URL = "https://api.telegram.org/bot"  # 默认 Telegram Bot API 地址 (通常不需要修改)
 
 logging.basicConfig(
