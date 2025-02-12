@@ -3,7 +3,9 @@ import telegram
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, PicklePersistence
 
-import config  # 导入 config.py
+# 定义 Bot Token 和 API 地址
+BOT_TOKEN = "YOUR_BOT_TOKEN"  # 替换为你的 Bot Token
+API_URL = "https://api.telegram.org/bot"  # 默认 Telegram Bot API 地址 (通常不需要修改)
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -50,7 +52,8 @@ if __name__ == '__main__':
     # Enable persistence to store user data
     persistence = PicklePersistence(filepath="bot_data.pkl")
 
-    application = ApplicationBuilder().token(config.BOT_TOKEN).persistence(persistence).build()  # 使用 config.BOT_TOKEN
+    # 使用 BOT_TOKEN 和 API_URL
+    application = ApplicationBuilder().token(BOT_TOKEN).base_url(API_URL).persistence(persistence).build()
 
     # Register handlers
     application.add_handler(CommandHandler("start", start))
