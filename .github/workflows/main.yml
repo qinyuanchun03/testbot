@@ -24,10 +24,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Set environment variables
-        run: |
-          echo "BOT_TOKEN=${{ secrets.BOT_TOKEN }}" >> $GITHUB_ENV
-
       - name: Deploy to Server (SSH)
         uses: appleboy/ssh-action@master  # 使用 @master 指向最新版本
         with:
